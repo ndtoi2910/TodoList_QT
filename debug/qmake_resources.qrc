@@ -1,0 +1,5 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource prefix="/TodoList">
+<file alias="main.qml">D:/QT_Project/TodoList/main.qml</file>
+</qresource>
+</RCC>
