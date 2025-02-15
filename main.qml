@@ -275,6 +275,7 @@ ApplicationWindow {
             }
 
             Item {
+                // Thử comment
                 Rectangle {
                     color: "blue"
                     anchors.fill: parent
