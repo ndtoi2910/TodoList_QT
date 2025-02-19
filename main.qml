@@ -23,15 +23,22 @@ ApplicationWindow {
 
     ListModel {
         id: todoModel
-        ListElement {date: "14/2/2025"; name: "A"; taskDone: false}
+        ListElement {date: "12/2/2025"; name: "A"; taskDone: false}
+        ListElement {date: "14/2/2025"; name: "B"; taskDone: false}
+    }
+
+    ListModel {
+        id: todoModelTaskDone
+        ListElement {date: "17/2/2025"; name: "C"; taskDone: true}
+        ListElement {date: "18/2/2025"; name: "D"; taskDone: true}
     }
 
     ListModel {
         id: todoModelRecentDeleted
-        ListElement {date: "13/2/2025"; name: "D"; taskDone: true}
-        ListElement {date: "15/2/2025"; name: "B"; taskDone: false}
-        ListElement {date: "15/2/2025"; name: "C"; taskDone: true}
-        ListElement {date: "18/2/2025"; name: "D"; taskDone: true}
+        ListElement {date: "13/2/2025"; name: "E"; taskDone: true}
+        ListElement {date: "15/2/2025"; name: "F"; taskDone: false}
+        ListElement {date: "15/2/2025"; name: "G"; taskDone: true}
+        ListElement {date: "16/2/2025"; name: "H"; taskDone: true}
     }
 
     function todoModeSortByDate(listModel) {
@@ -45,10 +52,6 @@ ApplicationWindow {
                     listModel.set(j, { name: item1.name, date: item1.date, taskDone: item1.taskDone});
                 }
             }
-        }
-
-        for (let i = 0; i < listModel.count; i++) {
-            console.log(listModel.get(i).date)
         }
     }
 
@@ -199,6 +202,7 @@ ApplicationWindow {
             height: parent.height - rect1.height - tabBar.height
             currentIndex: tabBar.currentIndex
 
+            // Task
             Item {
                 Rectangle {
                     anchors.fill: parent
@@ -326,8 +330,6 @@ ApplicationWindow {
                                             todoModelRecentDeleted.append(todoModel.get(index))
                                             todoModel.remove(index)
                                             todoModeSortByDate(todoModelRecentDeleted)
-
-
                                         }
                                     }
                                 }
@@ -362,6 +364,7 @@ ApplicationWindow {
                 }
             }
 
+            // Task Done
             Item {
                 Rectangle {
                     anchors.fill: parent
@@ -434,7 +437,9 @@ ApplicationWindow {
                                         anchors.fill: parent
 
                                         onClicked: {
+                                            todoModelRecentDeleted.append(todoModelTaskDone.get(index))
                                             todoModelTaskDone.remove(index)
+                                            todoModeSortByDate(todoModelRecentDeleted)
                                         }
                                     }
                                 }
@@ -469,6 +474,7 @@ ApplicationWindow {
                 }
             }
 
+            // Recent Deleted
             Item {
                 Rectangle {
                     anchors.fill: parent
@@ -542,7 +548,16 @@ ApplicationWindow {
                                         anchors.fill: parent
 
                                         onClicked: {
+                                            if(todoModelRecentDeleted.get(index).taskDone == true){
+                                                todoModelTaskDone.append(todoModelRecentDeleted.get(index));
+                                            }
+                                            else{
+                                                todoModel.append(todoModelRecentDeleted.get(index));
+                                            }
 
+                                            todoModelRecentDeleted.remove(index)
+                                            todoModeSortByDate(todoModel)
+                                            todoModeSortByDate(todoModelTaskDone)
                                         }
                                     }
                                 }
@@ -565,7 +580,7 @@ ApplicationWindow {
                                         anchors.fill: parent
 
                                         onClicked: {
-                                            calcDate()
+                                            todoModelRecentDeleted.remove(index)
                                         }
                                     }
                                 }
