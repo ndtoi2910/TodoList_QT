@@ -23,9 +23,92 @@ ApplicationWindow {
 
     ListModel {
         id: todoModel
-        ListElement {date: "14/2/2025"; name: "A"; taskDone: "false"}
+        ListElement {date: "14/2/2025"; name: "A"; taskDone: false}
     }
 
+    ListModel {
+        id: todoModelRecentDeleted
+        ListElement {date: "13/2/2025"; name: "D"; taskDone: true}
+        ListElement {date: "15/2/2025"; name: "B"; taskDone: false}
+        ListElement {date: "15/2/2025"; name: "C"; taskDone: true}
+        ListElement {date: "18/2/2025"; name: "D"; taskDone: true}
+    }
+
+    function todoModeSortByDate(listModel) {
+        let count = listModel.count;
+        for (let i = 0; i < count; i++) {
+            for (let j = i + 1; j < count; j++) {
+                let item1 = Object.assign({}, listModel.get(i));
+                let item2 = Object.assign({}, listModel.get(j));
+                if (item1.date > item2.date) {
+                    listModel.set(i, { name: item2.name, date: item2.date, taskDone: item2.taskDone});
+                    listModel.set(j, { name: item1.name, date: item1.date, taskDone: item1.taskDone});
+                }
+            }
+        }
+
+        for (let i = 0; i < listModel.count; i++) {
+            console.log(listModel.get(i).date)
+        }
+    }
+
+    function getDaysInMonth(month, year) {
+        var daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+        if ((year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0)) {
+            daysInMonth[1] = 29; 
+        }
+        return daysInMonth[month - 1];
+    }
+
+    function calcDate() {
+        var addDay = 0;
+        var indexToRemove = [];
+        for(var i = 0; i < todoModelRecentDeleted.count; i++){
+            var resDate = todoModelRecentDeleted.get(i).date.split("/")
+            var day = parseInt(resDate[0], 10)
+            var month = parseInt(resDate[1], 10)
+            var year = parseInt(resDate[2], 10)
+
+            while(addDay){
+                if(day + addDay <= dayinMonth(month, year)){
+                    day = day + addDay;
+                    break;
+                }
+                else{
+                    addDay = (addDay + day) - (dayinMonth(month, year) + 1);
+                    day = 1;
+                    month++;
+                    if(month > 12){
+                        month = 1;
+                        year++;
+                    }
+                }
+            }
+
+            var tmpDate = day + "/" + month + "/" + year;
+            if(tmpDate == getCurrentDate()){
+                indexToRemove.push(i);
+            }
+        }
+
+        for(var j = 0; j < indexToRemove.length; j++){
+            todoModelRecentDeleted.remove(indexToRemove[j]);
+            // console.log("đã xoá");
+        }
+
+        indexToRemove = []
+
+    }
+    
+    Timer {
+        id: checkDateTimer
+        interval: 86400000  // 24 giờ (24 * 60 * 60 * 1000 milliseconds)
+        running: true // Đảm bảo Timer bắt đầu chạy
+        repeat: true
+        onTriggered: calcDate()
+    }
+    
     Column {
         id: todoComponent
         visible: true
@@ -81,7 +164,7 @@ ApplicationWindow {
 
                         onClicked: {
                             if(todoText.text != ""){
-                                todoModel.append({date: getCurrentDate(), name: todoText.text, taskDone: "false"})
+                                todoModel.append({date: getCurrentDate(), name: todoText.text, taskDone: false})
                                 todoText.text = ""
                                 cntTodoIndex++
                             }
@@ -238,7 +321,10 @@ ApplicationWindow {
                                         anchors.fill: parent
 
                                         onClicked: {
+                                            todoModelRecentDeleted.append(todoModel.get(index))
                                             todoModel.remove(index)
+                                            todoModeSortByDate(todoModelRecentDeleted)
+
 
                                         }
                                     }
@@ -288,12 +374,123 @@ ApplicationWindow {
 
             Item {
                 Rectangle {
-                    color: "green"
                     anchors.fill: parent
-                    Text {
-                        text: "Home Page"
-                        anchors.centerIn: parent
-                        font.pixelSize: 20
+                    // color: "yellow"
+
+                    ListView {
+                        anchors.fill: parent
+                        spacing: 10
+                        boundsBehavior: Flickable.StopAtBounds
+                        model: todoModelRecentDeleted
+                        
+                        section.property: "date"
+                        section.delegate: 
+                        Rectangle {
+                            width: parent.width
+                            height: 30
+                            Text {
+                                text: section
+                                font.pixelSize: 14
+                                font.bold: true
+                                anchors.left: parent.left
+                                anchors.leftMargin: 10
+                                anchors.top: parent.top
+                                anchors.topMargin: 5
+                            }
+                        }
+                        
+                        delegate: 
+                        Rectangle {
+                            width: parent.width
+                            height: 30
+
+                            Row {
+                                anchors.fill: parent
+                                spacing: 5
+
+                                Rectangle {
+                                    width: parent.width - 90
+                                    height: parent.height
+                                    color: model.taskDone ? "lightGreen" : "#e0e0e0"
+                                    radius: 25
+                                    border.width: 2
+                                    border.color: "silver"
+
+                                    Text {
+                                        text: model.name
+                                        font.pixelSize: 14
+                                        anchors {
+                                            left: parent.left
+                                            leftMargin: 10
+                                            verticalCenter: parent.verticalCenter
+                                        }
+                                    }
+                                }
+
+                                Rectangle {
+                                    width: 40
+                                    height: parent.height
+                                    radius: 15
+                                    border.width: 2
+                                    border.color: "silver"
+
+                                    Text {
+                                        text: "Restore"
+                                        color: "silver"
+                                        font.pixelSize: 10
+                                        anchors.centerIn: parent
+                                    }
+
+                                    MouseArea {
+                                        anchors.fill: parent
+
+                                        onClicked: {
+
+                                        }
+                                    }
+                                }
+
+                                Rectangle {
+                                    width: 40
+                                    height: parent.height
+                                    radius: 15
+                                    border.width: 2
+                                    border.color: "silver"
+
+                                    Text {
+                                        text: "Delete"
+                                        color: "silver"
+                                        font.pixelSize: 10
+                                        anchors.centerIn: parent
+                                    }
+
+                                    MouseArea {
+                                        anchors.fill: parent
+
+                                        onClicked: {
+                                            calcDate()
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        ScrollBar.vertical: ScrollBar {
+                            id: scrollBarRecenDeleted
+                            opacity: 0
+
+                            Behavior on opacity {
+                                NumberAnimation { duration: 300 }
+                            }
+                        }
+
+                        onMovementStarted: {
+                            scrollBarRecenDeleted.opacity = 1;
+                        }
+
+                        onMovementEnded: {
+                            scrollBarRecenDeleted.opacity = 0;
+                        }
                     }
                 }
             }
