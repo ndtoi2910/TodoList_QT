@@ -26,6 +26,11 @@ ApplicationWindow {
         ListElement {date: "14/2/2025"; name: "A"; taskDone: "false"}
     }
 
+    ListModel {
+        id: todoModelTaskDone
+        ListElement {date: "14/2/2025"; name: "A"; taskDone: "true"}
+    }
+
     Column {
         id: todoComponent
         visible: true
@@ -215,7 +220,9 @@ ApplicationWindow {
                                         anchors.fill: parent
 
                                         onClicked: {
-
+                                            todoModel.setProperty(index, taskDone, "true")
+                                            todoModelTaskDone.append(todoModel.get(index))
+                                            todoModel.remove(index)
                                         }
                                     }
                                 }
@@ -276,12 +283,107 @@ ApplicationWindow {
 
             Item {
                 Rectangle {
-                    color: "blue"
                     anchors.fill: parent
-                    Text {
-                        text: "Home Page"
-                        anchors.centerIn: parent
-                        font.pixelSize: 20
+                    // color: "yellow"
+
+                    ListView {
+                        anchors.fill: parent
+                        spacing: 10
+                        boundsBehavior: Flickable.StopAtBounds
+                        model: todoModelTaskDone
+                        
+                        section.property: "date"
+                        section.delegate: 
+                        Rectangle {
+                            width: parent.width
+                            height: 30
+                            Text {
+                                text: section
+                                font.pixelSize: 14
+                                font.bold: true
+                                anchors.left: parent.left
+                                anchors.leftMargin: 10
+                                anchors.top: parent.top
+                                anchors.topMargin: 5
+                            }
+                        }
+                        
+                        delegate: 
+                        Rectangle {
+                            width: parent.width
+                            height: 30
+
+                            Row {
+                                anchors.fill: parent
+                                spacing: 5
+
+                                Rectangle {
+                                    width: parent.width - 55
+                                    height: parent.height
+                                    color: "#e0e0e0"
+                                    radius: 25
+                                    border.width: 2
+                                    border.color: "silver"
+
+                                    Text {
+                                        text: model.name
+                                        font.pixelSize: 14
+                                        anchors {
+                                            left: parent.left
+                                            leftMargin: 10
+                                            verticalCenter: parent.verticalCenter
+                                        }
+                                    }
+                                }
+                                Rectangle {
+                                    width: 50
+                                    height: parent.height
+                                    radius: 15
+                                    border.width: 2
+                                    border.color: "silver"
+
+                                    Text {
+                                        text: "Delete"
+                                        color: "silver"
+                                        font.pixelSize: 10
+                                        anchors.centerIn: parent
+                                    }
+
+                                    MouseArea {
+                                        anchors.fill: parent
+
+                                        onClicked: {
+                                            todoModelTaskDone.remove(index)
+                                        }
+                                    }
+                                }
+                            }
+
+                            // MouseArea {
+                            //     anchors.fill: parent
+
+                            //     onClicked: {
+                                    
+                            //     }
+                            // }
+                        }
+
+                        ScrollBar.vertical: ScrollBar {
+                            id: scrollBarTaskDone
+                            opacity: 0
+
+                            Behavior on opacity {
+                                NumberAnimation { duration: 300 }
+                            }
+                        }
+
+                        onMovementStarted: {
+                            scrollBarTaskDone.opacity = 1;
+                        }
+
+                        onMovementEnded: {
+                            scrollBarTaskDone.opacity = 0;
+                        }
                     }
                 }
             }
